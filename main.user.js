@@ -1,21 +1,21 @@
 // ==UserScript==
 // @name         PresenzeWeb
-// @namespace    https://gist.github.com/elbowz/3a54bb34d75ce6144a319d9b15972e6e
-// @version      0.9.1
-// @description  Add exit time and countdown
-// @author       muttley
+// @namespace    https://github.com/elbowz/TMPresenzeWeb
+// @version      0.9.2
+// @description  TamperMonkey script for extend PresenzeWeb
+// @author       muttley (elbowz), mtucci
 // @require      https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js
 // @require      https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js
 // @require      https://gist.github.com/raw/2625891/waitForKeyElements.js
-// @require      http://pastebin.com/raw/f0uSQVtx
-// @resource     rsHtmlTemplate http://pastebin.com/raw/bB6mcMt8
+// @require      https://raw.githubusercontent.com/elbowz/TMPresenzeWeb/master/assets/lib/utils.js
+// @resource     rsHtmlTemplate https://raw.githubusercontent.com/elbowz/TMPresenzeWeb/master/assets/template/main.html
 // @match        https://presenzeweb.univaq.it/StartWeb/default.aspx
 // @grant        GM_notification
 // @grant        GM_getResourceText
 // @grant        GM_setValue
 // @grant        GM_getValue
-// @updateURL    https://gist.githubusercontent.com/elbowz/3a54bb34d75ce6144a319d9b15972e6e/raw
-// @downloadURL  https://gist.githubusercontent.com/elbowz/3a54bb34d75ce6144a319d9b15972e6e/raw
+// @updateURL    https://raw.githubusercontent.com/elbowz/TMPresenzeWeb/master/main.user.js
+// @downloadURL  https://raw.githubusercontent.com/elbowz/TMPresenzeWeb/master/main.user.js
 // ==/UserScript==
 
 // CONFIG
@@ -26,15 +26,14 @@ var minutesThreshold = 432;         // 7:12
 var appendTagSelector = '#mytime .row-fluid.margin-top-10 .span12';
 
 // CORE
-$(document).ready(function() {
-});
+$(document).ready(function() { });
 
 // Add resources
 $('head').append('<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">');
 
 // Wait the appendTag is visible
 waitForKeyElements(appendTagSelector, function() {
-    console.log('waitForKeyElements');
+
     initConfig();
 
     var $appendTag = $(appendTagSelector);
@@ -136,8 +135,6 @@ waitForKeyElements(appendTagSelector, function() {
 });
 
 function initConfig() {
-
-    console.log(ciao);
 
     let template = new TMHtmlTemplate('rsHtmlTemplate');
 
