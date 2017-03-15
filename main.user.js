@@ -5,7 +5,7 @@
 // @description  TamperMonkey script for extend PresenzeWeb
 // @author       muttley (elbowz), mtucci
 // @require      https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js
-// @require      https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js
+// @require      https://raw.githubusercontent.com/elbowz/TMPresenzeWeb/master/assets/lib/bootstrap/bootstrap.min.js
 // @require      https://gist.github.com/raw/2625891/waitForKeyElements.js
 // @require      https://raw.githubusercontent.com/elbowz/TMPresenzeWeb/master/assets/lib/utils.js
 // @resource     rsHtmlTemplate https://raw.githubusercontent.com/elbowz/TMPresenzeWeb/master/assets/template/main.html
