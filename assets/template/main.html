@@ -1,17 +1,16 @@
-<template class="modal-config">
-    <div>ciao</div>
-    <div class="modal fade tamper-config" tabindex="-1" role="dialog" aria-labelledby="tamper-config">
-        <div class="modal-dialog" role="document">
+<template class="config-modal">
+    <div class="modal fade tmpw-config" tabindex="-1" role="dialog" aria-labelledby="tmpw-config">
+        <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title" id="tamper-config">Configuration (tampermonkey)</h4>
+                    <h4 class="modal-title" id="tmpw-config">TMPresenzeWeb - Configuration</h4>
                 </div>
                 <div class="modal-body">
                     <table>
                         <tr>
-                            <td><label for="tamper-cfg-notification-ahead" class="control-label">Notification ahead minutes</label></td>
-                            <td><input type="number" class="form-control" id="tamper-cfg-notification-ahead" placeholder="minutes"></td>
+                            <td><label for="tmpw-config-notification-ahead" class="control-label">Notification ahead minutes</label></td>
+                            <td><input type="number" class="form-control" id="tmpw-config-notification-ahead" placeholder="minutes"></td>
                         </tr>
                     </table>
                 </div>
@@ -22,6 +21,19 @@
         </div>
     </div>
 </template>
-<template class="button-config">
-    <li><a href="#"><i class="fa fa-cog" data-toggle="modal" data-target=".tamper-config" aria-hidden="true"></i></a></li>
+
+<template class="config-button">
+    <li><a href="#" class="count-info"><i class="fa fa-cog icon-dummy" data-toggle="modal" data-target=".tmpw-config" aria-hidden="true"></i></a></li>
+</template>
+
+<template class="label-plus-minus">
+    <span class="label" data-toggle="tmpw-popover" data-trigger="hover" data-placement="bottom">init</span>
+</template>
+
+<template class="label-minutes-left">
+    <span class="label" data-toggle="tmpw-popover" data-trigger="hover" data-placement="bottom">init</span>
+</template>
+
+<template class="label-meal-voucher">
+    <span class="label pull-right" style="display: none;"><i class="icon-food" aria-hidden="true"></i> Buono pasto</span>
 </template>
