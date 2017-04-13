@@ -1,0 +1,36 @@
+.bold {
+    font-weight: bold !important;
+}
+
+.normal {
+    font-weight: normal !important;
+}
+
+.lighter {
+    font-weight: lighter !important;
+}
+
+table.table th, table.table td {
+    vertical-align: middle !important;
+}
+
+table.table-last-td-right tr > td:last-child {
+    text-align: right;
+}
+
+label > input[type="checkbox"] {
+    margin-top: -1px;
+}
+
+.no-margin {
+    margin: 0 !important;
+}
+
+.no-padding {
+    margin: 0 !important;
+}
+
+.modal-body {
+    padding-top: 0;
+    padding-bottom: 0;
+}

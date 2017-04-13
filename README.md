@@ -1,8 +1,5 @@
 # TODO
-* Custom notifyOnMinutes
-  GM_getValue('notifyOnMinutes', 12);
-  GM_setValue('notifyOnMinutes', 6);
-
+* Countdown widget
 * Display anomalie
   ```javascript
   var knockout = require('knockout');

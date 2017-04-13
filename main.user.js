@@ -1,31 +1,32 @@
 // ==UserScript==
 // @name         PresenzeWeb
 // @namespace    https://github.com/elbowz/TMPresenzeWeb
-// @version      0.9.666
+// @version      0.9.8
 // @description  TamperMonkey script for extend PresenzeWeb
 // @author       muttley (elbowz), mtucci
 // @require      https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js
-// @require      https://raw.githubusercontent.com/elbowz/TMPresenzeWeb/master/assets/lib/bootstrap/bootstrap.min.js
-// @require      https://raw.githubusercontent.com/uzairfarooq/arrive/dff5333a3ef0082e727dafd3b553e603c23812d7/src/arrive.js
-// @require      https://raw.githubusercontent.com/elbowz/TMPresenzeWeb/master/assets/lib/utils.js
-// @resource     rsMainHtmlTpl https://raw.githubusercontent.com/elbowz/TMPresenzeWeb/master/assets/template/main.html
+// @require      https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js
+// @require      https://unpkg.com/vue@2.2.6/dist/vue.min.js
+// @require      https://rawgit.com/elbowz/TMPresenzeWeb/master/assets/lib/bootstrap/bootstrap.min.js
+// @require      https://rawgit.com/uzairfarooq/arrive/dff5333a3ef0082e727dafd3b553e603c23812d7/src/arrive.js
+// @require      https://rawgit.com/elbowz/TMPresenzeWeb/master/assets/lib/utils.js
+// @resource     rsMainHtmlTpl https://rawgit.com/elbowz/TMPresenzeWeb/master/assets/template/main.html
 // @match        https://presenzeweb.univaq.it/StartWeb/default.aspx
 // @grant        GM_notification
 // @grant        GM_getResourceText
 // @grant        GM_setValue
 // @grant        GM_getValue
-// @updateURL    https://raw.githubusercontent.com/elbowz/TMPresenzeWeb/master/main.user.js
-// @downloadURL  https://raw.githubusercontent.com/elbowz/TMPresenzeWeb/master/main.user.js
+// @updateURL    https://rawgit.com/elbowz/TMPresenzeWeb/master/main.user.js
+// @downloadURL  https://rawgit.com/elbowz/TMPresenzeWeb/master/main.user.js
 // ==/UserScript==
 
 /* DevMode
  Swap resource allow to work with pastebin
- https://raw.githubusercontent.com/elbowz/TMPresenzeWeb/master/assets/template/main.html => https://pastebin.com/raw/PR96A6Kj
- https://raw.githubusercontent.com/elbowz/TMPresenzeWeb/master/assets/lib/utils.js => https://pastebin.com/raw/JusvSwH0
- https://raw.githubusercontent.com/elbowz/TMPresenzeWeb/master/assets/css/main.css => https://pastebin.com/raw/gsJeMB5n */
+ https://rawgit.com/elbowz/TMPresenzeWeb/master/assets/template/main.html => https://pastebin.com/raw/PR96A6Kj
+ https://rawgit.com/elbowz/TMPresenzeWeb/master/assets/lib/utils.js => https://pastebin.com/raw/JusvSwH0 */
 
 /* Global Config */
-const TMPWCfg = {
+let TMPWCfg = {
     maxMinutesAtDay: 555,          // 9:15
     minutesThreshold: 432,         // 7:12
     notify: {
@@ -49,7 +50,7 @@ class TMPWMyTyme extends TMPWWidget {
         this.$parent.append($(document.createElement('span')).append(this.$mealVoucher));
 
         // Init popover ('placement' as tag attr not works)
-        $('[data-toggle="tmpw-popover"]').popover({ container: 'body', placement: 'bottom', html: true });
+        this.$parent.find('[data-toggle="tmpw-popover"]').popover({ container: 'body', placement: 'bottom', html: true });
     }
 
     onDataKoUpdate(ko) {
@@ -147,10 +148,20 @@ class TMPWMyTyme extends TMPWWidget {
 
 class TMPWNotify extends TMPWWidget {
 
+    constructor(objTemplate, parentSelector) {
+
+        super(objTemplate, parentSelector);
+
+        this.lastDatePlusNotify = null;
+        this.lastDateEndDayNotify = null;
+    }
+
     onDataKoUpdate(ko) {
 
         const modelUtils = requirejs('modelUtils');
         const koDataBind = ko.dataFor(this.$parent[0]);
+
+        const now = new Date();
 
         // Get Prestazioni Totali (minutesDone)
         const minutesDone = koDataBind.prestazioniTot();
@@ -160,7 +171,11 @@ class TMPWNotify extends TMPWWidget {
         let minutesLeft = TMPWCfg.minutesThreshold - minutesDone;
 
         // Notify
-        if (TMPWCfg.notify.plus.enabled && minutesLeft < TMPWCfg.notify.plus.minutesAhead) {
+        // Check if already triggered along current day
+        if ((!this.lastDatePlusNotify || this.lastDatePlusNotify.getDate() !== now.getDate()) &&
+            TMPWCfg.notify.plus.enabled && minutesLeft < TMPWCfg.notify.plus.minutesAhead) {
+
+            this.lastDatePlusNotify = new Date();
 
             // Display HTML5 notification
             GM_notification({
@@ -177,8 +192,11 @@ class TMPWNotify extends TMPWWidget {
         // Calc minutes left (at end of day)
         minutesLeft = TMPWCfg.maxMinutesAtDay - minutesDone;
 
-        // Notify
-        if (TMPWCfg.notify.endDay.enabled && minutesLeft < TMPWCfg.notify.endDay.minutesAhead) {
+        // Notify (same of above with different threshold)
+        if ((!this.lastDateEndDayNotify || this.lastDateEndDayNotify.getDate() !== now.getDate()) &&
+            TMPWCfg.notify.endDay.enabled && minutesLeft < TMPWCfg.notify.endDay.minutesAhead) {
+
+            this.lastDateEndDayNotify = new Date();
 
             // Display HTML5 notification
             GM_notification({
@@ -197,11 +215,26 @@ class TMPWConfig extends TMPWWidget {
 
     onReady() {
 
+        // Add modal config
         const modalConfig = this.objTemplate.elTemplate('config-modal');
         document.body.appendChild(modalConfig);
 
         //$('.tamper-config').modal({ show: false });
 
+        // Template config modal
+        let configModal = new Vue({
+            el: '.tmpw-config',
+            data: TMPWCfg,
+            methods: {
+                // Update config on persistent storage
+                change: () => { GM_setValue('TMPWCfg', TMPWCfg); }
+            }
+        });
+
+        // Enable modal config tooltips
+        $(configModal.$el).find('[data-toggle="tooltip"]').tooltip();
+
+        // Add config button to navbar
         const buttonConfig = this.objTemplate.elTemplate('config-button');
         this.$parent.prepend(buttonConfig);
     }
@@ -213,12 +246,20 @@ $(document).ready(function() {
     // Add resources to main page
     $('head')
         .append('<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">')
-        .append('<link href="https://raw.githubusercontent.com/elbowz/TMPresenzeWeb/master/assets/css/main.css" rel="stylesheet">');
+        .append('<link href="https://rawgit.com/elbowz/TMPresenzeWeb/master/assets/css/main.css" rel="stylesheet">');
 });
 
 {
+    // Load config from persistence storage
+    TMPWCfg = GM_getValue('TMPWCfg', TMPWCfg);
+
+    // Add TM Info
+    Object.assign(TMPWCfg, { GMInfo: GM_info });
+
+    // Init object template
     const mainHtmlTp = new TMHtmlTemplate('rsMainHtmlTpl');
 
+    // Init objects widget
     new TMPWConfig(mainHtmlTp, '#dashboard .nav.nav-pills.pull-right');
     new TMPWMyTyme(mainHtmlTp, '#mytime .row-fluid.margin-top-10 .span12');
     new TMPWNotify(mainHtmlTp, '#mytime .row-fluid.margin-top-10 .span12');
