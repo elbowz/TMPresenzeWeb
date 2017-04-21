@@ -1,5 +1,4 @@
 # TODO
-* Countdown widget
 * Display anomalie
   ```javascript
   var knockout = require('knockout');

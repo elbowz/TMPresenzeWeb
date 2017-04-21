@@ -4,14 +4,14 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title" id="tmpw-config"><i class="fa fa-fw fa-cogs" aria-hidden="true"></i> TMPresenzeWeb - Configuration</h4>
+                    <h4 class="modal-title"><i class="fa fa-fw fa-cogs" aria-hidden="true"></i> TMPresenzeWeb - Configuration</h4>
                 </div>
                 <div class="modal-body">
                     <h5><i class="fa fa-fw fa-commenting-o" aria-hidden="true"></i> Notifiche</h5>
                     <table class="table table-last-td-right">
                         <tr>
                             <td><label class="control-label no-margin"><input type="checkbox" v-model="notify.plus.enabled" v-on:change="change"> <span
-                                    v-bind:class="{ bold: notify.plus.enabled, lighter: !notify.plus.enabled }">Plus</span></label></td>
+                                    v-bind:class="{ bold: notify.plus.enabled, lighter: !notify.plus.enabled }">Plus (giornata di 7.12)</span></label></td>
                             <td>
                                 <span class="text-right">
                                     <i class="fa" aria-hidden="true" v-bind:class="{ 'fa-bolt': notify.plus.enabled }"></i>
@@ -37,7 +37,7 @@
                         </tr>
                         <tr>
                             <td><label class="control-label no-margin"><input type="checkbox" v-model="notify.endDay.enabled" v-on:change="change"> <span
-                                    v-bind:class="{ bold: notify.endDay.enabled, lighter: !notify.endDay.enabled }">Giornata completa</span></label></td>
+                                    v-bind:class="{ bold: notify.endDay.enabled, lighter: !notify.endDay.enabled }">Giornata completa (giornata di 9.15)</span></label></td>
                             <td>
                                 <span class="text-right">
                                     <i class="fa" aria-hidden="true" v-bind:class="{ 'fa-bolt': notify.endDay.enabled }"></i>
@@ -60,6 +60,27 @@
                             <input type="number" class="form-control input-sm no-margin" placeholder="minuti" v-model.number="notify.endDay.minutesAhead" v-bind:disabled="!notify.endDay.enabled"
                                    v-on:change="change">
                         </td>
+                        </tr>
+                    </table>
+                    <h5><i class="fa fa-fw fa-hourglass-half" aria-hidden="true"></i> Countdown</h5>
+                    <table class="table table-last-td-right">
+                        <tr>
+                            <td><label class="control-label no-margin"><input type="checkbox" v-model="countdown.plus" v-on:change="change"> <span
+                                    v-bind:class="{ bold: countdown.plus, lighter: !countdown.plus }">Plus: (giornata di 7.12)</span></label></td>
+                            <td>
+                                <span class="text-right">
+                                    <i class="fa" aria-hidden="true" v-bind:class="{ 'fa-bolt': countdown.plus }"></i>
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><label class="control-label no-margin"><input type="checkbox" v-model="countdown.endDay" v-on:change="change"> <span
+                                    v-bind:class="{ bold: countdown.endDay, lighter: !countdown.endDay }">Giornata completa: (giornata di 9.15)</span></label></td>
+                            <td>
+                                <span class="text-right">
+                                    <i class="fa" aria-hidden="true" v-bind:class="{ 'fa-bolt': countdown.endDay }"></i>
+                                </span>
+                            </td>
                         </tr>
                     </table>
                 </div>
@@ -86,4 +107,26 @@
 
 <template class="label-meal-voucher">
     <span class="label label-success pull-right" style="display: none;"><i class="icon-food" aria-hidden="true"></i> Buono pasto</span>
+</template>
+
+<template class="countdown-plus">
+    <div class="row-fluid flex-center" v-if="countdown.plus">
+        <div class="span2 text-center">
+            <img src="https://raw.githubusercontent.com/elbowz/TMPresenzeWeb/master/assets/img/icon-timer.png" data-toggle="tmpw-popover" data-trigger="hover"
+                 data-content="<strong>Plus:</strong> fine della giornata (7.12)"/></div>
+        <div class="span10">
+            <div class="tmpw-countdown-plus no-margin"/>
+        </div>
+    </div>
+</template>
+
+<template class="countdown-end-day">
+    <div class="row-fluid flex-center" v-if="countdown.endDay">
+        <div class="span2 text-center">
+            <img src="https://raw.githubusercontent.com/elbowz/TMPresenzeWeb/master/assets/img/icon-run.png" data-toggle="tmpw-popover" data-trigger="hover"
+                 data-content="<strong>Completa:</strong> fine della giornata (9.15)"/></div>
+        <div class="span10">
+            <div class="tmpw-countdown-end-day no-margin"/>
+        </div>
+    </div>
 </template>
