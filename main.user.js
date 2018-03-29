@@ -206,17 +206,16 @@ class TMPWMyTyme extends TMPWWidget {
 
         if (minutesDone >= 420) {    // >= 7:00
             const clocks = koDataBind.listatimboriginali();
-            for (let i = 0; i < clocks.length; i++) {
-                if (clocks[i].minutiv >= 780 &&                            // clock out >= 13:00
-                    clocks[i].minutiv <= 870 &&                            // clock out <= 14:30
-                    clocks[i].versovdescr == 'Uscita' &&                   // clock out
-                    clocks[i + 1] !== undefined &&                         // there is a clock in
-                    clocks[i + 1].minutiv <= 870 &&                        // clock in <= 14:30
-                    clocks[i + 1].versovdescr == 'Entrata' &&              // clock in
-                    clocks[i + 1].minutiv - clocks[i].minutiv >= 10) {     // clock in at least 10 minutes since clock out
+			
+            for (let i = 1; i < clocks.length; i+=2) {
+				
+			    if (clocks[i].versovdescr == 'Entrata' && clocks[i].minutiv >= 790 &&      // clock in  >= 13:10
+                    clocks[i - 1].versovdescr == 'Uscita' && clocks[i].minutiv <= 890 &&   // clock out <= 14:50
+                    clocks[i].minutiv - clocks[i - 1].minutiv >= 10) {                     // clock in at least 10 minutes since clock out
+
                     this.$mealVoucher.show();
-                    break;
-                }
+					break;
+				}
             }
         } else this.$mealVoucher.hide();
     }
