@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name         PresenzeWeb
 // @namespace    https://github.com/elbowz/TMPresenzeWeb
-// @version      0.9.9
+// @version      1.0.0
 // @description  TamperMonkey script for extend PresenzeWeb
-// @author       muttley (elbowz), mtucci
+// @author       Emanuele Palombo (elbowz)
 // @require      https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js
 // @require      https://unpkg.com/vue@2.2.6/dist/vue.min.js
@@ -58,6 +58,33 @@ class TMPWMyTyme extends TMPWWidget {
         this.$parent
             .find('[data-toggle="tmpw-popover"]')
             .popover({ container: 'body', placement: 'bottom', html: true });
+
+        this.initCountDown();
+    }
+
+    onDataKoUpdate(ko) {
+
+        const modelUtils = requirejs('modelUtils');
+        const koDataBind = ko.dataFor(this.$parent[0]);
+
+        // Get Prestazioni Totali (minutesDone)
+        const minutesDone = koDataBind.prestazioniTot();
+
+        this.updatePlusOrMinusLabel(minutesDone, modelUtils);
+        this.updateMinutesLeftLabel(minutesDone, modelUtils);
+        this.updateMealVoucherLabel(minutesDone, koDataBind);
+
+        this.updateLabelClass(minutesDone);
+
+        // Update countdown
+        const secondsThresholdDiff = (TMPWCfg.minutesThreshold - minutesDone) * 60;
+        this.plusCountdownVue._flipClock.setTime(secondsThresholdDiff >= 0 ? secondsThresholdDiff : 0);
+
+        const secondsLeft = (TMPWCfg.maxMinutesAtDay - minutesDone) * 60;
+        this.endDayCountdownVue._flipClock.setTime(secondsLeft >= 0 ? secondsLeft : 0);
+    }
+
+    initCountDown() {
 
         // Append template
         const plusCountdownTpl = this.objTemplate.elTemplate('countdown-plus');
@@ -148,42 +175,26 @@ class TMPWMyTyme extends TMPWWidget {
         });
     }
 
-    onDataKoUpdate(ko) {
-
-        const modelUtils = requirejs('modelUtils');
-        const koDataBind = ko.dataFor(this.$parent[0]);
-
-        // Get Prestazioni Totali (minutesDone)
-        const minutesDone = koDataBind.prestazioniTot();
-
-        this.updatePlusOrMinusLabel(minutesDone, modelUtils);
-        this.updateMinutesLeftLabel(minutesDone, modelUtils);
-        this.updateMealVoucherLabel(minutesDone, koDataBind);
-
-        this.updateLabelClass(minutesDone);
-
-        const secondsThresholdDiff = (TMPWCfg.minutesThreshold - minutesDone) * 60;
-        this.plusCountdownVue._flipClock.setTime(secondsThresholdDiff >= 0 ? secondsThresholdDiff : 0);
-
-        const secondsLeft = (TMPWCfg.maxMinutesAtDay - minutesDone) * 60;
-        this.endDayCountdownVue._flipClock.setTime(secondsLeft >= 0 ? secondsLeft : 0);
-    }
-
     updatePlusOrMinusLabel(minutesDone, modelUtils) {
 
         // Minus or plus
         const thresholdDiff = TMPWCfg.minutesThreshold - minutesDone;
 
-        this.$plusOrMinus[0].innerHTML =
-            thresholdDiff > 0 ?
-                `<i class="fa fa-minus" aria-hidden="true"></i> Minus ${modelUtils.minToStringNB(thresholdDiff, '.')}` :
-                `<i class="fa fa-plus" aria-hidden="true"></i> Plus ${modelUtils.minToStringNB(thresholdDiff * -1, '.')}`;
-
         // Calc time to Ordinary time
         const endThreshold = new Date((new Date()).getTime() + thresholdDiff * 60000);
 
-        // ...and update popover content
-        this.$plusOrMinus.data('bs.popover').options.content = `Fine della giornata (7.12) alle <strong>${TMPWFormatTime(endThreshold)}</strong>`;
+        // Update label
+        this.$plusOrMinus[0].innerHTML =
+            (thresholdDiff > 0 ?
+                '<i class="fa fa-fw fa-minus-circle" aria-hidden="true"></i> ' :
+                '<i class="fa fa-fw fa-plus-circle" aria-hidden="true"></i> ') +
+            TMPWFormatTime(endThreshold);
+
+        // ...and popover content
+        this.$plusOrMinus.data('bs.popover').options.content =
+            thresholdDiff > 0 ?
+                `Mancano <strong>${modelUtils.minToStringNB(thresholdDiff, '.')}h</strong> alla fine della giornata (7.12)` :
+                `Hai superato di <strong>${modelUtils.minToStringNB(thresholdDiff * -1, '.')}h</strong> la fine della giornata (7.12)`;
     }
 
     updateMinutesLeftLabel(minutesDone, modelUtils) {
@@ -192,30 +203,34 @@ class TMPWMyTyme extends TMPWWidget {
         const minutesLeft = TMPWCfg.maxMinutesAtDay - minutesDone;
         const minutesLeftStr = modelUtils.minToStringNB(Math.abs(minutesLeft), '.');
 
-        // ...and update label content
-        this.$minutesLeft[0].innerHTML = `<i class="fa fa-clock-o" aria-hidden="true"></i> ${(minutesLeft > 0 ? '-' : '+')} ${minutesLeftStr}`;
-
         // Calc time to go away
         const endDay = new Date((new Date()).getTime() + (TMPWCfg.maxMinutesAtDay * 60000) - (minutesDone * 60000));
 
-        // ...and update popover content
-        this.$minutesLeft.data('bs.popover').options.content = `Fine della giornata (9.15) alle <strong>${TMPWFormatTime(endDay)}</strong>`;
+        // Update label content
+        this.$minutesLeft[0].innerHTML = `<i class="fa fa-clock-o" aria-hidden="true"></i> ${(minutesLeft > 0 ? '-' : '+')} ${minutesLeftStr}`;
+        this.$minutesLeft[0].innerHTML = `<i class="fa fa-fw fa-clock-o" aria-hidden="true"></i> ${TMPWFormatTime(endDay)}`;
+
+        // ...and popover content
+        this.$minutesLeft.data('bs.popover').options.content =
+            minutesLeft > 0 ?
+                `Mancano <strong>${minutesLeftStr}h</strong> al massimo ore giornaliere (9.12)` :
+                `Hai superato di <strong>${minutesLeftStr}h</strong> il massimo ore giornaliere (9.12)`;
     }
 
     updateMealVoucherLabel(minutesDone, koDataBind) {
 
         if (minutesDone >= 420) {    // >= 7:00
             const clocks = koDataBind.listatimboriginali();
-			
-            for (let i = 1; i < clocks.length; i+=2) {
-				
-			    if (clocks[i].versovdescr == 'Entrata' && clocks[i].minutiv >= 790 &&      // clock in  >= 13:10
+
+            for (let i = 1; i < clocks.length; i += 2) {
+
+                if (clocks[i].versovdescr == 'Entrata' && clocks[i].minutiv >= 790 &&      // clock in  >= 13:10
                     clocks[i - 1].versovdescr == 'Uscita' && clocks[i].minutiv <= 890 &&   // clock out <= 14:50
                     clocks[i].minutiv - clocks[i - 1].minutiv >= 10) {                     // clock in at least 10 minutes since clock out
 
                     this.$mealVoucher.show();
-					break;
-				}
+                    break;
+                }
             }
         } else this.$mealVoucher.hide();
     }
