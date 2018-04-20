@@ -17,6 +17,8 @@ TamperMonkey script for extend PresenzeWeb
 * Display "anomalie"
 
 ## Changelog
+* **1.0.1**
+    * Fix for new modified ticket launch calculation
 * **1.0.0**
     * Modified ticket launch calculation (Thanks to Vinicio Maurizio #PR1)
     * Display end time for plus and full day inside de labels

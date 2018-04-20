@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PresenzeWeb
 // @namespace    https://github.com/elbowz/TMPresenzeWeb
-// @version      1.0.0
+// @version      1.0.1
 // @description  TamperMonkey script for extend PresenzeWeb
 // @author       Emanuele Palombo (elbowz)
 // @require      https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js
@@ -222,11 +222,11 @@ class TMPWMyTyme extends TMPWWidget {
         if (minutesDone >= 420) {    // >= 7:00
             const clocks = koDataBind.listatimboriginali();
 
-            for (let i = 1; i < clocks.length; i += 2) {
+            for (let i = 2; i < clocks.length; i += 2) {
 
-                if (clocks[i].versovdescr == 'Entrata' && clocks[i].minutiv >= 790 &&      // clock in  >= 13:10
-                    clocks[i - 1].versovdescr == 'Uscita' && clocks[i].minutiv <= 890 &&   // clock out <= 14:50
-                    clocks[i].minutiv - clocks[i - 1].minutiv >= 10) {                     // clock in at least 10 minutes since clock out
+                if (clocks[i].versovdescr == 'Entrata' && clocks[i].minutiv >= 790 &&           // clock in >= 13:10
+                    clocks[i - 1].versovdescr == 'Uscita' && clocks[i - 1].minutiv <= 890 &&    // clock out <= 14:50
+                    clocks[i].minutiv - clocks[i - 1].minutiv >= 10) {                          // clock in at least 10 minutes since clock out
 
                     this.$mealVoucher.show();
                     break;
