@@ -53,8 +53,13 @@ class TMPWWidget {
         document.arrive(parentSelector, { onceOnly: true }, function() {
 
             self.$parent = $(this);
-            self.onReady();
-            requirejs(['knockout'], (ko) => { ko.computed(() => { self.onDataKoUpdate(ko); }); });
+
+            const knockoutLibName = require.defined('knockout') ? 'knockout' : 'ko';
+
+            requirejs([knockoutLibName], (ko) => {
+                self.onReady(ko);
+                ko.computed(() => { self.onDataKoUpdate(ko); });
+            });
         });
     }
 
@@ -73,6 +78,72 @@ class TMPWWidget {
     onDataKoUpdate(ko) {
 
         //console.log('[TMPWWidget] onUpdate');
+    }
+}
+
+class TMPQuery {
+    /**
+     * Include the needed libs (by requirejs)
+     */
+    init() {
+        return new Promise((resolve, reject) => {
+
+            if (this.app) resolve();
+            else {
+
+                requirejs(['jsonUtils', 'runtime', 'cartellino/url', 'tw'],
+                    (jsonUtils, runtime, internalUrl, tw) => {
+
+                        this.app = runtime.newApp();
+                        this.currentUser = this.app.currentUser();
+                        this.jsonUtils = jsonUtils;
+                        this.internalUrl = internalUrl;
+                        this.tw = tw;
+
+                        resolve({ jsonUtils, runtime, internalUrl, tw });
+                    });
+            }
+        });
+    }
+
+    /**
+     * Make a REST call to retrive Cartellino informantion (by day)
+     * @param {TMHtmlTemplate} objTemplate
+     * @param {string} selectorParent - waited html element
+     */
+    async post(queryParams = {}, url = null) {
+
+        await this.init();
+
+        if (!url) url = this.internalUrl.ConsultaCartellino(this.currentUser.iddip)
+
+        queryParams = Object.assign({
+            tiporichiesta: this.tw.defs.tTipoRichiestaCartellino.trcSingoloDipendente,
+            tipoconsultazione: this.tw.defs.tTipoConsultazioneCartellino.tccConsultazione
+        }, queryParams);
+
+        if (queryParams instanceof Object) queryParams = this.jsonUtils.toJset(this.app.fromObservable(queryParams));
+
+        return new Promise((resolve, reject) => {
+
+            const postCallback = function(retData, textStatus, jqXhr) {
+
+                retData = retData || '';
+                const jsonobj = $.isPlainObject(retData) || $.isArray(retData) || retData == '' ? retData : JSON.parse(retData);
+
+                if (jsonobj.__rpc_error) reject(jsonobj.__rpc_error);
+                else resolve(jsonobj);
+            };
+
+            $.post(url, queryParams, postCallback, 'json')
+                .error(function(jqXhr, textStatus) {
+
+                    const jsonobj = this.jsonUtils.normalizza(jqXhr.responseText);
+                    const message = jsonobj.__rpc_error || textStatus;
+
+                    reject(message);
+                });
+        });
     }
 }
 

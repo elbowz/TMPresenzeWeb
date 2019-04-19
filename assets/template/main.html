@@ -85,7 +85,7 @@
                     </table>
                 </div>
                 <div class="modal-footer">
-                    <small class="pull-left">v{{ GMInfo.script.version }}, written by {{ GMInfo.script.author }}</small>
+                    <small class="pull-left"><a href="https://github.com/elbowz/TMPresenzeWeb"><i class="fa fa-fw fa-github-alt" aria-hidden="true"></i> v{{ GMInfo.script.version }}</a>, written by {{ GMInfo.script.author }}</small>
                     <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
                 </div>
             </div>
@@ -107,6 +107,14 @@
 
 <template class="label-meal-voucher">
     <span class="label label-success pull-right" style="display: none;"><i class="icon-food" aria-hidden="true"></i> Buono pasto</span>
+</template>
+
+<template class="label-count-meal-voucher">
+    <span class="label label-success"><i class="icon-food" aria-hidden="true"></i> <span>init</span><small>/init</small> Buoni pasto</span></span>
+</template>
+
+<template class="label-count-anomalies">
+    <span class="label"><i class="icon-exclamation-sign" aria-hidden="true"></i> <span>init</span> Anomalie</span>
 </template>
 
 <template class="countdown-plus">

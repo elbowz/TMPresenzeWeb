@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PresenzeWeb
 // @namespace    https://github.com/elbowz/TMPresenzeWeb
-// @version      1.0.1
+// @version      1.2.0
 // @description  TamperMonkey script for extend PresenzeWeb
 // @author       Emanuele Palombo (elbowz)
 // @require      https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js
@@ -24,7 +24,8 @@
 /* DevMode
  Swap resource allow to work with pastebin
  https://rawgit.com/elbowz/TMPresenzeWeb/master/assets/template/main.html => https://pastebin.com/raw/PR96A6Kj
- https://rawgit.com/elbowz/TMPresenzeWeb/master/assets/lib/utils.js => https://pastebin.com/raw/JusvSwH0 */
+ https://rawgit.com/elbowz/TMPresenzeWeb/master/assets/lib/utils.js => https://pastebin.com/raw/JusvSwH0
+ https://rawgit.com/elbowz/TMPresenzeWeb/master/assets/css/main.css => https://pastebin.com/raw/gsJeMB5n */
 
 /* Global Config */
 let TMPWCfg = {
@@ -40,7 +41,7 @@ let TMPWCfg = {
     }
 };
 
-class TMPWMyTyme extends TMPWWidget {
+class TMPWMyTime extends TMPWWidget {
 
     onReady() {
 
@@ -213,8 +214,8 @@ class TMPWMyTyme extends TMPWWidget {
         // ...and popover content
         this.$minutesLeft.data('bs.popover').options.content =
             minutesLeft > 0 ?
-                `Mancano <strong>${minutesLeftStr}h</strong> al massimo ore giornaliere (9.12)` :
-                `Hai superato di <strong>${minutesLeftStr}h</strong> il massimo ore giornaliere (9.12)`;
+                `Mancano <strong>${minutesLeftStr}h</strong> al massimo ore giornaliere (9.15)` :
+                `Hai superato di <strong>${minutesLeftStr}h</strong> il massimo ore giornaliere (9.15)`;
     }
 
     updateMealVoucherLabel(minutesDone, koDataBind) {
@@ -224,9 +225,9 @@ class TMPWMyTyme extends TMPWWidget {
 
             for (let i = 2; i < clocks.length; i += 2) {
 
-                if (clocks[i].versovdescr == 'Entrata' && clocks[i].minutiv >= 790 &&           // clock in >= 13:10
-                    clocks[i - 1].versovdescr == 'Uscita' && clocks[i - 1].minutiv <= 890 &&    // clock out <= 14:50
-                    clocks[i].minutiv - clocks[i - 1].minutiv >= 10) {                          // clock in at least 10 minutes since clock out
+                if (clocks[i].versovdescr == 'Entrata' && clocks[i].minutiv >= 790 &&          // clock in  >= 13:10
+                    clocks[i - 1].versovdescr == 'Uscita' && clocks[i - 1].minutiv <= 890 &&   // clock out <= 14:50
+                    clocks[i].minutiv - clocks[i - 1].minutiv >= 10) {                         // clock in at least 10 minutes since clock out
 
                     this.$mealVoucher.show();
                     break;
@@ -258,6 +259,59 @@ class TMPWMyTyme extends TMPWWidget {
             this.$plusOrMinus.removeClass('label-warning').addClass('label-important');
             this.$minutesLeft.removeClass('label-warning').addClass('label-important');
         }
+    }
+}
+
+class TMPWCartellino extends TMPWWidget {
+
+    onReady(ko) {
+
+        this.query = new TMPQuery();
+        this.koDataBind = ko.dataFor(this.$parent.closest('#widget-body-cartellino')[0]);
+
+        this.$countMealVoucher = $(this.objTemplate.elTemplate('label-count-meal-voucher'));
+        this.$countAnomalies = $(this.objTemplate.elTemplate('label-count-anomalies'));
+
+        // Add to interface panel (surrounded by a <span>)
+        this.$parent.append($(document.createElement('span')).append(this.$countMealVoucher));
+        this.$parent.append($(document.createElement('span')).append(this.$countAnomalies));
+
+        this.$parent.addClass('flex-center');
+
+        // Subscribe to Calendar (cartellino) on change (arrows click)
+        this.koDataBind.viewModel.datafine.subscribe(_.debounce(this.computeCartellino.bind(this), 350, false));
+
+        this.computeCartellino()
+    }
+
+    computeCartellino() {
+        const viewModel = this.koDataBind.viewModel;
+
+        // Compute mealVoucher on current month
+        this.query.post({
+            datainizio: viewModel.datainizio(),
+            datafine: viewModel.datafine()
+        }).then(response => {
+            const sintensi = this.query.jsonUtils.normalizza(response.result.sintesi);
+
+            let countAnomalies = 0;
+            let countMealVoucher = 0;
+
+            // Count mealvouchers and anomlaies
+            for (let day of sintensi) {
+                countAnomalies += day.listaanomalie.length
+                if (day.listavbdescrestesa.find((element) => element.valore == 60)) countMealVoucher++;
+            }
+
+            // Set values
+            this.$countAnomalies[0].children[1].innerHTML = countAnomalies;
+
+            if (countAnomalies) this.$countAnomalies.addClass('label-warning');
+            else this.$countAnomalies.removeClass('label-warning')
+
+            this.$countMealVoucher[0].children[1].innerHTML = countMealVoucher;
+            this.$countMealVoucher[0].children[2].innerHTML = '/' + sintensi.length;
+        })
     }
 }
 
@@ -379,6 +433,7 @@ $(document).ready(function() {
 
     // Init objects widget
     new TMPWConfig(mainHtmlTp, '#dashboard .nav.nav-pills.pull-right');
-    new TMPWMyTyme(mainHtmlTp, '#mytime .row-fluid.margin-top-10 .span12');
+    new TMPWMyTime(mainHtmlTp, '#mytime .row-fluid.margin-top-10 .span12');
     new TMPWNotify(mainHtmlTp, '#mytime .row-fluid.margin-top-10 .span12');
+    new TMPWCartellino(mainHtmlTp, '#calendar-cartellino > div.fc-toolbar > div.fc-left');
 }
