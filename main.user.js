@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PresenzeWeb
 // @namespace    https://github.com/elbowz/TMPresenzeWeb
-// @version      1.2.0
+// @version      1.2.6
 // @description  TamperMonkey script for extend PresenzeWeb
 // @author       Emanuele Palombo (elbowz)
 // @require      https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js
@@ -23,14 +23,15 @@
 
 /* DevMode
  Swap resource allow to work with pastebin
- https://rawgit.com/elbowz/TMPresenzeWeb/master/assets/template/main.html => https://pastebin.com/raw/PR96A6Kj
- https://rawgit.com/elbowz/TMPresenzeWeb/master/assets/lib/utils.js => https://pastebin.com/raw/JusvSwH0
- https://rawgit.com/elbowz/TMPresenzeWeb/master/assets/css/main.css => https://pastebin.com/raw/gsJeMB5n */
+ https://rawgit.com/elbowz/TMPresenzeWeb/master/assets/template/main.html => file:///.../source/main/assets/template/main.html
+ https://rawgit.com/elbowz/TMPresenzeWeb/master/assets/lib/utils.js => file:///.../source/main/assets/lib/utils.js
+ https://rawgit.com/elbowz/TMPresenzeWeb/master/assets/css/main.css => file:///.../source/main/assets/css/main.css */
 
 /* Global Config */
 let TMPWCfg = {
     maxMinutesAtDay: 555,          // 9:15
     minutesThreshold: 432,         // 7:12
+    sessionKeepAlive: true,
     countdown: {
         plus: true,
         endDay: true
@@ -382,6 +383,13 @@ class TMPWNotify extends TMPWWidget {
 
 class TMPWConfig extends TMPWWidget {
 
+    constructor(objTemplate, parentSelector) {
+
+        super(objTemplate, parentSelector);
+
+        this.sessionKeepAliveTimer = null;
+    }
+
     onReady() {
 
         // Add modal config
@@ -400,13 +408,34 @@ class TMPWConfig extends TMPWWidget {
             },
             methods: {
                 // Update config on persistent storage
-                change: () => { GM_setValue('TMPWCfg', TMPWCfg); }
+                change: () => {
+                    GM_setValue('TMPWCfg', TMPWCfg);
+
+                    // Start SessionKeepAlive (if set in config)
+                    this.sessionKeepAlive(TMPWCfg.sessionKeepAlive);
+                }
             }
         });
 
         // Add config button to navbar
         const buttonConfig = this.objTemplate.elTemplate('config-button');
         this.$parent.prepend(buttonConfig);
+
+        // Start SessionKeepAlive (if set in config)
+        this.sessionKeepAlive(TMPWCfg.sessionKeepAlive);
+    }
+
+    sessionKeepAlive(start = true) {
+
+        if (this.sessionKeepAliveTimer) clearInterval(this.sessionKeepAliveTimer);
+
+        if (start) {
+            this.sessionKeepAliveTimer = setInterval(() =>
+                    fetch('/StartWeb/default.aspx')
+                        .then(() => { console.log('Session KeepAlive:', TMPWFormatTime())}
+                        )
+                , 1000 * 60 * 10);
+        }
     }
 }
 

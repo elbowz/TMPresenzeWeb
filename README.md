@@ -17,6 +17,8 @@ TamperMonkey script for extend PresenzeWeb
 * Display "anomalie"
 
 ## Changelog
+* **1.2.6**
+    * Session KeepAlive
 * **1.2.0**
     * Display Meal Voucher and Anomalies per month
     * Minor typo fix

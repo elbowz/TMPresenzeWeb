@@ -26,14 +26,15 @@
                                 <input type="number" class="form-control input-sm no-margin" placeholder="minuti" v-model.number="notify.plus.timeout" v-bind:disabled="!notify.plus.enabled"
                                        v-on:change="change">
                         </tr>
-                        <td>
-                            Anticipa <i class="fa fa-question-circle-o" aria-hidden="true" data-toggle="tooltip" data-placement="right"
-                                        title="Quanti minuti prima del goal il pop-up deve essere mostrato">
-                        </td>
-                        <td>
-                            <input type="number" class="form-control input-sm no-margin" placeholder="minuti" v-model.number="notify.plus.minutesAhead" v-bind:disabled="!notify.plus.enabled"
-                                   v-on:change="change">
-                        </td>
+                        <tr>
+                            <td>
+                                Anticipa <i class="fa fa-question-circle-o" aria-hidden="true" data-toggle="tooltip" data-placement="right"
+                                            title="Quanti minuti prima del goal il pop-up deve essere mostrato"></i>
+                            </td>
+                            <td>
+                                <input type="number" class="form-control input-sm no-margin" placeholder="minuti" v-model.number="notify.plus.minutesAhead" v-bind:disabled="!notify.plus.enabled"
+                                       v-on:change="change">
+                            </td>
                         </tr>
                         <tr>
                             <td><label class="control-label no-margin"><input type="checkbox" v-model="notify.endDay.enabled" v-on:change="change"> <span
@@ -52,14 +53,15 @@
                                 <input type="number" class="form-control input-sm no-margin" placeholder="minuti" v-model.number="notify.endDay.timeout" v-bind:disabled="!notify.endDay.enabled"
                                        v-on:change="change">
                         </tr>
-                        <td>
-                            Anticipa <i class="fa fa-question-circle-o" aria-hidden="true" data-toggle="tooltip" data-placement="right"
-                                        title="Quanti minuti prima del goal il pop-up deve essere mostrato">
-                        </td>
-                        <td>
-                            <input type="number" class="form-control input-sm no-margin" placeholder="minuti" v-model.number="notify.endDay.minutesAhead" v-bind:disabled="!notify.endDay.enabled"
-                                   v-on:change="change">
-                        </td>
+                        <tr>
+                            <td>
+                                Anticipa <i class="fa fa-question-circle-o" aria-hidden="true" data-toggle="tooltip" data-placement="right"
+                                            title="Quanti minuti prima del goal il pop-up deve essere mostrato"></i>
+                            </td>
+                            <td>
+                                <input type="number" class="form-control input-sm no-margin" placeholder="minuti" v-model.number="notify.endDay.minutesAhead" v-bind:disabled="!notify.endDay.enabled"
+                                       v-on:change="change">
+                            </td>
                         </tr>
                     </table>
                     <h5><i class="fa fa-fw fa-hourglass-half" aria-hidden="true"></i> Countdown</h5>
@@ -83,9 +85,30 @@
                             </td>
                         </tr>
                     </table>
+                    <h5><i class="fa fa-fw fa-cog" aria-hidden="true"></i> General</h5>
+                    <table class="table table-last-td-right">
+                        <tr>
+                            <td>
+                                <label class="control-label no-margin"><input type="checkbox" v-model="sessionKeepAlive" v-on:change="change">
+                                    <span v-bind:class="{ bold: sessionKeepAlive, lighter: !sessionKeepAlive }">
+                                    Session keepalive
+                                    </span>
+                                    <i class="fa fa-question-circle-o" aria-hidden="true" data-toggle="tooltip" data-placement="right"
+                                       title="Evita il timeout della sessione che costringe a rieffettuare il login"></i>
+                                </label>
+                            </td>
+                            <td>
+                                <span class="text-right">
+                                    <i class="fa" aria-hidden="true" v-bind:class="{ 'fa-bolt': sessionKeepAlive }"></i>
+                                </span>
+                            </td>
+                        </tr>
+                    </table>
                 </div>
                 <div class="modal-footer">
-                    <small class="pull-left"><a href="https://github.com/elbowz/TMPresenzeWeb"><i class="fa fa-fw fa-github-alt" aria-hidden="true"></i> v{{ GMInfo.script.version }}</a>, written by {{ GMInfo.script.author }}</small>
+                    <span class="pull-left">
+                        <i class="fa fa-fw fa-github-alt" aria-hidden="true"></i> <a href="https://github.com/elbowz/TMPresenzeWeb" target="_blank">TMPresenzeWeb v{{ GMInfo.script.version }}</a>, written by {{ GMInfo.script.author }}
+                    </span>
                     <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
                 </div>
             </div>
