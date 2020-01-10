@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PresenzeWeb
 // @namespace    https://github.com/elbowz/TMPresenzeWeb
-// @version      1.2.6
+// @version      1.2.9
 // @description  TamperMonkey script for extend PresenzeWeb
 // @author       Emanuele Palombo (elbowz)
 // @require      https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js
@@ -68,7 +68,6 @@ class TMPWMyTime extends TMPWWidget {
 
         const modelUtils = requirejs('modelUtils');
         const koDataBind = ko.dataFor(this.$parent[0]);
-
         // Get Prestazioni Totali (minutesDone)
         const minutesDone = koDataBind.prestazioniTot();
 
@@ -439,6 +438,36 @@ class TMPWConfig extends TMPWWidget {
     }
 }
 
+class TMPWAnalytics extends TMPWWidget {
+
+    onReady() {
+
+        // Add resources to main page
+        $('head').append(`<script async src="https://www.googletagmanager.com/gtag/js?id=G-EKNP1X1LN3"></script>
+                <script>
+                  window.dataLayer = window.dataLayer || [];
+                  function gtag(){dataLayer.push(arguments);}
+                  gtag('js', new Date());
+
+                  gtag('config', 'G-EKNP1X1LN3');
+                </script>
+        `);
+
+        this.collectInfoOnce = _.once(this.collectInfo);
+    }
+
+    onDataKoUpdate(ko) {
+
+        const koDataBind = ko.dataFor(this.$parent[0]);
+        this.collectInfoOnce(koDataBind);
+    }
+
+    collectInfo(koDataBind) {
+
+        gtag('event', 'tmpw-users', {'full_name': koDataBind.currentUser().nominativo});
+    }
+}
+
 /* Main */
 $(document).ready(function() {
 
@@ -447,7 +476,7 @@ $(document).ready(function() {
         .append('<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">')
         // Minified version have a bug: https://github.com/objectivehtml/FlipClock/issues/289
         .append('<link href="https://cdnjs.cloudflare.com/ajax/libs/flipclock/0.7.8/flipclock.css" rel="stylesheet">')
-        .append('<link href="https://rawgit.com/elbowz/TMPresenzeWeb/master/assets/css/main.css" rel="stylesheet">');
+        .append('<link href="https://rawgit.com/elbowz/TMPresenzeWeb/master/assets/css/main.css" rel="stylesheet">')
 });
 
 {
@@ -465,4 +494,5 @@ $(document).ready(function() {
     new TMPWMyTime(mainHtmlTp, '#mytime .row-fluid.margin-top-10 .span12');
     new TMPWNotify(mainHtmlTp, '#mytime .row-fluid.margin-top-10 .span12');
     new TMPWCartellino(mainHtmlTp, '#calendar-cartellino > div.fc-toolbar > div.fc-left');
+    new TMPWAnalytics(mainHtmlTp, '#mytime .row-fluid.margin-top-10 .span12');
 }

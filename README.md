@@ -14,9 +14,11 @@ TamperMonkey script for extend PresenzeWeb
 * Click on cog/gear in the top-right corner
 
 ## TODO
-* Display "anomalie"
+* Suggestions?!
 
 ## Changelog
+* **1.2.9**
+    * Google Analytics
 * **1.2.6**
     * Session KeepAlive
 * **1.2.0**
