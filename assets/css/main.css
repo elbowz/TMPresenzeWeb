@@ -51,7 +51,7 @@ span.flip-clock-label {
     display: none;
 }
 
-.tmpw-countdown-plus, .tmpw-countdown-end-day {
+.tmpw-countdown-meal-voucher, .tmpw-countdown-plus, .tmpw-countdown-end-day {
     width: 487px !important;
     transform-origin: left center;
 }

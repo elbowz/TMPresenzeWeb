@@ -5,7 +5,7 @@
 // @description  TamperMonkey script for extend PresenzeWeb
 // @author       Emanuele Palombo (elbowz)
 // @require      https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js
-// @require      https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js
+// @require      https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.20/lodash.min.js
 // @require      https://unpkg.com/vue@2.2.6/dist/vue.min.js
 // @require      https://rawgit.com/elbowz/TMPresenzeWeb/master/assets/lib/bootstrap/bootstrap.min.js
 // @require      https://rawgit.com/uzairfarooq/arrive/dff5333a3ef0082e727dafd3b553e603c23812d7/src/arrive.js
@@ -31,12 +31,15 @@
 let TMPWCfg = {
     maxMinutesAtDay: 555,          // 9:15
     minutesThreshold: 432,         // 7:12
+    minutesMealVoucher: 420,       // 7:00
     sessionKeepAlive: true,
     countdown: {
+        mealVoucher: true,
         plus: true,
         endDay: true
     },
     notify: {
+        mealVoucher: { enabled: true, timeout: 0, minutesAhead: 12 },
         plus: { enabled: true, timeout: 0, minutesAhead: 12 },
         endDay: { enabled: true, timeout: 0, minutesAhead: 12 }
     }
@@ -61,7 +64,7 @@ class TMPWMyTime extends TMPWWidget {
             .find('[data-toggle="tmpw-popover"]')
             .popover({ container: 'body', placement: 'bottom', html: true });
 
-        this.initCountDown();
+        this.initCountDowns();
     }
 
     onDataKoUpdate(ko) {
@@ -78,6 +81,9 @@ class TMPWMyTime extends TMPWWidget {
         this.updateLabelClass(minutesDone);
 
         // Update countdown
+        const mealVoucherDiff = (TMPWCfg.minutesMealVoucher - minutesDone) * 60;
+        this.mealVoucherCountdownVue._flipClock.setTime(mealVoucherDiff >= 0 ? mealVoucherDiff : 0);
+
         const secondsThresholdDiff = (TMPWCfg.minutesThreshold - minutesDone) * 60;
         this.plusCountdownVue._flipClock.setTime(secondsThresholdDiff >= 0 ? secondsThresholdDiff : 0);
 
@@ -85,18 +91,12 @@ class TMPWMyTime extends TMPWWidget {
         this.endDayCountdownVue._flipClock.setTime(secondsLeft >= 0 ? secondsLeft : 0);
     }
 
-    initCountDown() {
-
-        // Append template
-        const plusCountdownTpl = this.objTemplate.elTemplate('countdown-plus');
-        const endDayCountdownTpl = this.objTemplate.elTemplate('countdown-end-day');
-        this.$parent.closest('#mytime').append(plusCountdownTpl).append(endDayCountdownTpl);
+    intVueCountDown(elTpl, selector) {
 
         const self = this;
 
-        // Template Plus Countdown
-        this.plusCountdownVue = new Vue({
-            el: plusCountdownTpl,
+        return new Vue({
+            el: elTpl,
             data: TMPWCfg,
             created: function() {
 
@@ -116,7 +116,7 @@ class TMPWMyTime extends TMPWWidget {
             methods: {
                 initFlipClock: function(minutes = 21966) {
 
-                    this._flipClock = $(this.$el).find('.tmpw-countdown-plus').FlipClock(minutes, {
+                    this._flipClock = $(this.$el).find(selector).FlipClock(minutes, {
                         countdown: true,
                         language: 'it-it',
                     });
@@ -128,52 +128,24 @@ class TMPWMyTime extends TMPWWidget {
                 responsiveFlipClock: function() {
 
                     $(this.$el)
-                        .find('.tmpw-countdown-plus')
+                        .find(selector)
                         .css({ transform: `scale(${self.$parent.width() / 568})` });
                 }
             }
         });
+    }
 
-        // Template EndDay Countdown
-        // TODO: I guess could be extend by plusCountdownVue
-        this.endDayCountdownVue = new Vue({
-            el: endDayCountdownTpl,
-            data: TMPWCfg,
-            created: function() {
+    initCountDowns() {
 
-                // Resize FlipClock on browser resize
-                $(window).resize(() => this.responsiveFlipClock());
-            },
-            mounted: function() {
+        // Append template
+        const mealVoucherCountdownTpl = this.objTemplate.elTemplate('countdown-meal-voucher');
+        const plusCountdownTpl = this.objTemplate.elTemplate('countdown-plus');
+        const endDayCountdownTpl = this.objTemplate.elTemplate('countdown-end-day');
+        this.$parent.closest('#mytime').append(mealVoucherCountdownTpl).append(plusCountdownTpl).append(endDayCountdownTpl);
 
-                this.initFlipClock();
-                this.responsiveFlipClock();
-            },
-            updated: function() {               // Called on show/hide by config
-
-                this.initFlipClock(this._flipClock.getTime().time);
-                this.responsiveFlipClock();
-            },
-            methods: {
-                initFlipClock: function(minutes = 21966) {
-
-                    this._flipClock = $(this.$el).find('.tmpw-countdown-end-day').FlipClock(minutes, {
-                        countdown: true,
-                        language: 'it-it',
-                    });
-
-                    $(this.$el)
-                        .find('[data-toggle="tmpw-popover"]')
-                        .popover({ container: 'body', placement: 'bottom', html: true });
-                },
-                responsiveFlipClock: function() {
-
-                    $(this.$el)
-                        .find('.tmpw-countdown-end-day')
-                        .css({ transform: `scale(${self.$parent.width() / 568})` });
-                }
-            }
-        });
+        this.mealVoucherCountdownVue = this.intVueCountDown(mealVoucherCountdownTpl, '.tmpw-countdown-meal-voucher');
+        this.plusCountdownVue = this.intVueCountDown(plusCountdownTpl, '.tmpw-countdown-plus');
+        this.endDayCountdownVue =  this.intVueCountDown(endDayCountdownTpl, '.tmpw-countdown-end-day');
     }
 
     updatePlusOrMinusLabel(minutesDone, modelUtils) {
@@ -220,7 +192,7 @@ class TMPWMyTime extends TMPWWidget {
 
     updateMealVoucherLabel(minutesDone, koDataBind) {
 
-        if (minutesDone >= 420) {    // >= 7:00
+        if (minutesDone >= TMPWCfg.minutesMealVoucher) {
             const clocks = koDataBind.listatimboriginali();
 
             for (let i = 2; i < clocks.length; i += 2) {
@@ -321,6 +293,7 @@ class TMPWNotify extends TMPWWidget {
 
         super(objTemplate, parentSelector);
 
+        this.lastDateMealVoucherNotify = null;
         this.lastDatePlusNotify = null;
         this.lastDateEndDayNotify = null;
     }
@@ -335,9 +308,31 @@ class TMPWNotify extends TMPWWidget {
         // Get Prestazioni Totali (minutesDone)
         const minutesDone = koDataBind.prestazioniTot();
 
+        /* Meal voucher */
+        // Calc minutes left (at meal vaucher)
+        let minutesLeft = TMPWCfg.minutesMealVoucher - minutesDone;
+
+        // Notify
+        // Check if already triggered along current day
+        if ((!this.lastDateMealVoucherNotify || this.lastDateMealVoucherNotify.getDate() !== now.getDate()) &&
+            TMPWCfg.notify.mealVoucher.enabled && minutesLeft <= TMPWCfg.notify.mealVoucher.minutesAhead) {
+
+            this.lastDateMealVoucherNotify = new Date();
+
+            // Display HTML5 notification
+            GM_notification({
+                text: 'Buono pasto raggiunto.\nHai fatto ' + modelUtils.minToStringNB(minutesDone, '.') + ' (su ' + modelUtils.minToStringNB(TMPWCfg.minutesMealVoucher, '.') + ') ore !',
+                title: 'Presenze web',
+                highlight: false,
+                timeout: TMPWCfg.notify.mealVoucher.timeout,
+                image: 'https://raw.githubusercontent.com/elbowz/TMPresenzeWeb/master/assets/img/icon-meal-voucher.png',
+                onclick: () => { GM_notification({ highlight: true }); }                   // Highlight browser tab on notification click
+            });
+        }
+
         /* Plus Threshold */
         // Calc minutes left (at plus threshold)
-        let minutesLeft = TMPWCfg.minutesThreshold - minutesDone;
+        minutesLeft = TMPWCfg.minutesThreshold - minutesDone;
 
         // Notify
         // Check if already triggered along current day
@@ -481,7 +476,7 @@ $(document).ready(function() {
 
 {
     // Load config from persistence storage
-    _.extend(TMPWCfg, GM_getValue('TMPWCfg', TMPWCfg));
+    _.merge(TMPWCfg, GM_getValue('TMPWCfg', TMPWCfg));
 
     // Add TM Info
     Object.assign(TMPWCfg, { GMInfo: GM_info });

@@ -17,6 +17,11 @@ TamperMonkey script for extend PresenzeWeb
 * Suggestions?!
 
 ## Changelog
+* **1.3.0**
+    * Add Meal voucher (countdown and notification)
+    * Update icons
+    * Change underscore with loadash lib
+    * Code refactoring
 * **1.2.9**
     * Google Analytics
 * **1.2.6**
