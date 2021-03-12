@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PresenzeWeb
 // @namespace    https://github.com/elbowz/TMPresenzeWeb
-// @version      1.2.9
+// @version      1.3.0
 // @description  TamperMonkey script for extend PresenzeWeb
 // @author       Emanuele Palombo (elbowz)
 // @require      https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js
